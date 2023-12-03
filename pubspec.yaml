@@ -39,6 +39,8 @@ dependencies:
   sqflite: any
   path_provider: any
   image_picker: any
+  flutter_rating_bar: any
+  provider: any
 
 dev_dependencies:
   flutter_test:

@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '/models/categories.dart';
 import '/database/db_helper.dart';
+import '/main.dart';
+import '/dataProvider.dart';
+import 'package:provider/provider.dart';
 
 class AddCategoriesScreen extends StatefulWidget {
   const AddCategoriesScreen({Key? key}) : super(key: key);
@@ -17,6 +20,7 @@ class AddCategoriesScreen extends StatefulWidget {
 class _AddCategoriesScreenState extends State<AddCategoriesScreen> {
   final _formKey = GlobalKey<FormState>();
   String _selectedImagePath = '';
+  late String _selectedColor = 'Black';
   late TextEditingController _titleController;
 
   void _deleteCategory(int? categoryId) async {
@@ -33,6 +37,12 @@ class _AddCategoriesScreenState extends State<AddCategoriesScreen> {
   void dispose() {
     _titleController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedColor = 'Black'; // O el color que desees como valor inicial
   }
 
   Future<void> _getImage() async {
@@ -84,6 +94,31 @@ class _AddCategoriesScreenState extends State<AddCategoriesScreen> {
                         return null;
                       },
                     ),
+                    DropdownButtonFormField<String>(
+                      value: _selectedColor,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedColor = value!;
+                        });
+                      },
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'Black',
+                          child: Text('Black'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Red',
+                          child: Text('Red'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Blue',
+                          child: Text('Blue'),
+                        ),
+                      ],
+                      decoration: const InputDecoration(
+                        labelText: 'Category Color',
+                      ),
+                    ),
                     const SizedBox(height: 16.0),
                     ElevatedButton(
                       onPressed: () async {
@@ -95,11 +130,21 @@ class _AddCategoriesScreenState extends State<AddCategoriesScreen> {
                           final newCategory = Categories(
                             imagen: _selectedImagePath,
                             texto: _titleController.text,
+                            colorCategory: _selectedColor,
                           );
                           print('Calling DBHelper.insert');
                           await DBHelper.insert(newCategory);
+ final dataProvider = Provider.of<DataProvider>(context, listen: false);
+      final newCategories = await DBHelper.getAllCategories();
+      dataProvider.updateCategories(newCategories);
 
                           // Reemplazar la pantalla actual con una nueva instancia de AddCategoriesScreen
+                          // Navigator.pushReplacement(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => const MyApp(),
+                          //   ),
+                          // );
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -116,7 +161,7 @@ class _AddCategoriesScreenState extends State<AddCategoriesScreen> {
 
               // Sección de Categorías
               const SizedBox(
-                height: 20.0,
+                height: 50.0,
               ),
               const Text(
                 'Categories',
@@ -160,6 +205,16 @@ class _AddCategoriesScreenState extends State<AddCategoriesScreen> {
                     );
                   }
                 },
+              ),
+              const SizedBox(
+                height: 40.0,
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await DBHelper.deleteAllCategories();
+                  setState(() {});
+                },
+                child: const Text('Eliminar todos los registros'),
               ),
             ],
           ),
