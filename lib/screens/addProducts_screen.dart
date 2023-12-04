@@ -1,9 +1,34 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '/database/helperProducts.dart';
+import '/models/products.dart';
+import 'dart:io';
 
-class AddProducts extends StatelessWidget {
+class AddProducts extends StatefulWidget {
+  const AddProducts({super.key});
 
-final DatabaseHelper dbHelper = DatabaseHelper();
+  @override
+  _AddProductsState createState() => _AddProductsState();
+}
+
+class _AddProductsState extends State<AddProducts> {
+  final DatabaseHelper dbHelper = DatabaseHelper();
+  final ImagePicker _picker = ImagePicker();
+
+  // Controladores para los campos del formulario
+  final TextEditingController imageController = TextEditingController();
+  final TextEditingController categoryController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+  final TextEditingController rankingController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController caloriesController = TextEditingController();
+  final TextEditingController additivesController = TextEditingController();
+  final TextEditingController vitaminsController = TextEditingController();
+  String? imagePath;
+  List<ProductsItems> productList = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,74 +42,199 @@ final DatabaseHelper dbHelper = DatabaseHelper();
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Imagen
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Imagen'),
-              ),
-              SizedBox(height: 16.0),
+              imagePath != null ? Image.file(File(imagePath!)) : Container(),
 
+              // Botón para abrir la cámara
+              ElevatedButton(
+                onPressed: _takePicture,
+                child: const Text('Tomar Foto'),
+              ),
               // Categoría
               TextFormField(
-                decoration: InputDecoration(labelText: 'Categoría'),
+                controller: categoryController,
+                decoration: const InputDecoration(labelText: 'Categoría'),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
               // Precio
               TextFormField(
-                decoration: InputDecoration(labelText: 'Precio'),
+                controller: priceController,
+                decoration: const InputDecoration(labelText: 'Precio'),
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
               // Ranking (utilizando un RatingBar)
               TextFormField(
-                decoration: InputDecoration(labelText: 'Ranking'),
+                controller: rankingController,
+                decoration: const InputDecoration(labelText: 'Ranking'),
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
               // Título
               TextFormField(
-                decoration: InputDecoration(labelText: 'Título'),
+                controller: titleController,
+                decoration: const InputDecoration(labelText: 'Título'),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
               // Descripción
               TextFormField(
-                decoration: InputDecoration(labelText: 'Descripción'),
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Descripción'),
                 maxLines: 3,
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
               // Calorías
               TextFormField(
-                decoration: InputDecoration(labelText: 'Calorías'),
+                controller: caloriesController,
+                decoration: const InputDecoration(labelText: 'Calorías'),
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
               // Aditivos
               TextFormField(
-                decoration: InputDecoration(labelText: 'Aditivos'),
+                controller: additivesController,
+                decoration: const InputDecoration(labelText: 'Aditivos'),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
               // Vitaminas
               TextFormField(
-                decoration: InputDecoration(labelText: 'Vitaminas'),
+                controller: vitaminsController,
+                decoration: const InputDecoration(labelText: 'Vitaminas'),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
               // Botón para enviar el formulario
               ElevatedButton(
                 onPressed: () {
                   // Aquí puedes agregar la lógica para enviar el formulario
+                  _addProduct();
                 },
-                child: Text('Añadir Producto'),
+                child: const Text('Añadir Producto'),
               ),
+              const SizedBox(height: 50),
+              const Text(
+                'Lista de Productos',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              productList.isEmpty
+                  ? const Text('No hay productos añadidos.')
+                  : DataTable(
+                      columns: const [
+                        DataColumn(label: Text('Título')),
+                        DataColumn(label: Text('Actualizar')),
+                        DataColumn(label: Text('Eliminar')),
+                      ],
+                      rows: productList.map((product) {
+                        return DataRow(cells: [
+                          DataCell(Text(product.title)),
+                          DataCell(
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                // Aquí puedes agregar la lógica para actualizar el producto
+                                print('Actualizar ${product.title}');
+                              },
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.blue,
+                                padding:const  EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 16),
+                              ),
+                              icon: const Icon(Icons.edit, color: Colors.white),
+                              label: const  Text(
+                                '',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                // Aquí puedes agregar la lógica para eliminar el producto
+                                print('Eliminar ${product.title}');
+                              },
+                              style: ElevatedButton.styleFrom(
+                                primary: Colors.red,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 16),
+                              ),
+                              icon: const Icon(Icons.delete, color: Colors.white),
+                              label: const  Text(
+                                '',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ]);
+                      }).toList(),
+                    ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _takePicture() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+
+    if (image != null) {
+      setState(() {
+        imagePath = image.path;
+      });
+    }
+  }
+
+  void _addProduct() async {
+    // Obtener los valores de los controladores
+    String category = categoryController.text;
+    double price = double.parse(priceController.text);
+    int ranking = int.parse(rankingController.text);
+    String title = titleController.text;
+    String description = descriptionController.text;
+    int calories = int.parse(caloriesController.text);
+    int additives = int.parse(additivesController.text);
+    int vitamins = int.parse(vitaminsController.text);
+
+    // Verificar si hay una imagen seleccionada
+    if (imagePath == null || imagePath!.isEmpty) {
+      // Aquí puedes manejar el caso de que no se haya seleccionado una imagen
+      print('Error: Debes seleccionar una imagen');
+      return;
+    }
+
+    // Crear un objeto ProductsItems con los valores del formulario
+    ProductsItems product = ProductsItems(
+      id: 0, // El ID se asignará automáticamente en la base de datos
+      title: title,
+      description: description,
+      category: category,
+      image: imagePath!, // Utiliza la ruta de la imagen seleccionada
+      price: price,
+      ranking: ranking,
+      calories: calories,
+      additives: additives,
+      vitamins: vitamins,
+    );
+
+    // Insertar el producto en la base de datos
+    int result = await dbHelper.insertFoodItem(product);
+
+    // Verificar si la inserción fue exitosa
+    if (result != 0) {
+      // Mostrar un mensaje de éxito o navegar a otra pantalla
+      print('Producto añadido con éxito');
+      // Agregar el producto a la lista para mostrarlo
+      setState(() {
+        productList.add(product);
+      });
+    } else {
+      // Mostrar un mensaje de error
+      print('Error al añadir el producto');
+    }
   }
 }

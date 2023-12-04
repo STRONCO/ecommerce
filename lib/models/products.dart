@@ -23,20 +23,26 @@ class ProductsItems {
     required this.vitamins,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'category': category,
-      'image': image,
-      'price': price,
-      'ranking': ranking,
-      'calories': calories,
-      'additives': additives,
-      'vitamins': vitamins,
-    };
+ Map<String, dynamic> toMap({bool excludeId = false}) {
+  var map = {
+    'title': title,
+    'description': description,
+    'category': category,
+    'image': image,
+    'price': price,
+    'ranking': ranking,
+    'calories': calories,
+    'additives': additives,
+    'vitamins': vitamins,
+  };
+
+  // Exclude 'id' if specified
+  if (!excludeId) {
+    map['id'] = id;
   }
+
+  return map;
+}
   ProductsItems.fromMap(Map<String, dynamic> map)
       : id = map['id'],
         title = map['title'],

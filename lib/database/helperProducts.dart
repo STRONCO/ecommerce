@@ -44,9 +44,8 @@ class DatabaseHelper {
   }
 Future<int> insertFoodItem(ProductsItems foodItem) async {
   var dbClient = await db;
-  return await dbClient?.insert('ProductsItems', foodItem.toMap()) ?? 0;
+  return await dbClient?.insert('ProductsItems', foodItem.toMap(excludeId: true)) ?? 0;
 }
-
  Future<List<ProductsItems>> getFoodItems() async {
   var dbClient = await db;
   List<Map<String, dynamic>> list = await dbClient?.query('ProductsItems') ?? [];
