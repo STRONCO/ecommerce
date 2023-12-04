@@ -97,4 +97,19 @@ class DatabaseHelper {
       return 0;
     }
   }
+  Future<Map<String, dynamic>> getProductDetails(int productId) async {
+    var dbClient = await db;
+    try {
+      List<Map<String, dynamic>> result = await dbClient?.query('ProductsItems', where: 'id = ?', whereArgs: [productId]) ?? [];
+      if (result.isNotEmpty) {
+        return result.first;
+      } else {
+        return {}; // Retorna un mapa vacío si no se encuentra el producto
+      }
+    } catch (e) {
+      print("Error al obtener detalles del producto: $e");
+      throw Exception("Failed to get product details");
+    }
+  }
+
 }

@@ -351,18 +351,26 @@ class _HomePageState extends State<HomePage> {
                               if (selectedProduct != null &&
                                   selectedProduct!.image.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(left: 0.0),
-                                  child: ClipOval(
-                                    child: Image.file(
-                                      File(selectedProduct!.image),
-                                      width:
-                                          120.0, // Adjust the width as needed
-                                      height:
-                                          120.0, // Adjust the height as needed
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
+  padding: const EdgeInsets.only(left: 0.0),
+  child: GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProductDetailsScreen(product: selectedProduct),
+        ),
+      );
+    },
+    child: ClipOval(
+      child: Image.file(
+        File(selectedProduct!.image),
+        width: 120.0,
+        height: 120.0,
+        fit: BoxFit.cover,
+      ),
+    ),
+  ),
+),
                               const SizedBox(
                                   width: 15.0), // Adjust spacing as needed
                               if (selectedProduct != null)
