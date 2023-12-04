@@ -316,8 +316,16 @@ class _HomePageState extends State<HomePage> {
                             onPressed: () {
                               // Lógica para agregar al carrito
                             },
-                            icon: const Icon(Icons.shopping_cart),
-                            label: const Text('Add to Cart'),
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors.white, // Color de fondo blanco
+                            ),
+                            icon: const Icon(Icons.shopping_cart,
+                                color: Colors.black), // Icono en color negro
+                            label: const Text(
+                              'Add to Cart',
+                              style: TextStyle(
+                                  color: Colors.black), // Texto en color negro
+                            ),
                           ),
                         ],
                       ),
