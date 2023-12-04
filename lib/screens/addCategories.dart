@@ -56,7 +56,7 @@ class _AddCategoriesScreenState extends State<AddCategoriesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar( 
         title: const Text('Add Category'),
       ),
       body: SingleChildScrollView(

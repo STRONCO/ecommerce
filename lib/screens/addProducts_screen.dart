@@ -29,150 +29,156 @@ class _AddProductsState extends State<AddProducts> {
   final TextEditingController vitaminsController = TextEditingController();
   String? imagePath;
   List<ProductsItems> productList = [];
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  void _loadProducts() async {
+    List<ProductsItems> products = await dbHelper.getFoodItems();
+    setState(() {
+      productList
+          .clear(); // Limpia la lista actual antes de cargar los productos
+      productList.addAll(products);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Product'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Imagen
-              imagePath != null ? Image.file(File(imagePath!)) : Container(),
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Add Product'),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Imagen
+                imagePath != null ? Image.file(File(imagePath!)) : Container(),
 
-              // Botón para abrir la cámara
-              ElevatedButton(
-                onPressed: _takePicture,
-                child: const Text('Tomar Foto'),
-              ),
-              // Categoría
-              TextFormField(
-                controller: categoryController,
-                decoration: const InputDecoration(labelText: 'Categoría'),
-              ),
-              const SizedBox(height: 16.0),
+                // Botón para abrir la cámara
+                ElevatedButton(
+                  onPressed: _takePicture,
+                  child: const Text('Tomar Foto'),
+                ),
+                // Categoría
+                TextFormField(
+                  controller: categoryController,
+                  decoration: const InputDecoration(labelText: 'Categoría'),
+                ),
+                const SizedBox(height: 16.0),
 
-              // Precio
-              TextFormField(
-                controller: priceController,
-                decoration: const InputDecoration(labelText: 'Precio'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16.0),
+                // Precio
+                TextFormField(
+                  controller: priceController,
+                  decoration: const InputDecoration(labelText: 'Precio'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16.0),
 
-              // Ranking (utilizando un RatingBar)
-              TextFormField(
-                controller: rankingController,
-                decoration: const InputDecoration(labelText: 'Ranking'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16.0),
+                // Ranking (utilizando un RatingBar)
+                TextFormField(
+                  controller: rankingController,
+                  decoration: const InputDecoration(labelText: 'Ranking'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16.0),
 
-              // Título
-              TextFormField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Título'),
-              ),
-              const SizedBox(height: 16.0),
+                // Título
+                TextFormField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Título'),
+                ),
+                const SizedBox(height: 16.0),
 
-              // Descripción
-              TextFormField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Descripción'),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16.0),
+                // Descripción
+                TextFormField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Descripción'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16.0),
 
-              // Calorías
-              TextFormField(
-                controller: caloriesController,
-                decoration: const InputDecoration(labelText: 'Calorías'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16.0),
+                // Calorías
+                TextFormField(
+                  controller: caloriesController,
+                  decoration: const InputDecoration(labelText: 'Calorías'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16.0),
 
-              // Aditivos
-              TextFormField(
-                controller: additivesController,
-                decoration: const InputDecoration(labelText: 'Aditivos'),
-              ),
-              const SizedBox(height: 16.0),
+                // Aditivos
+                TextFormField(
+                  controller: additivesController,
+                  decoration: const InputDecoration(labelText: 'Aditivos'),
+                ),
+                const SizedBox(height: 16.0),
 
-              // Vitaminas
-              TextFormField(
-                controller: vitaminsController,
-                decoration: const InputDecoration(labelText: 'Vitaminas'),
-              ),
-              const SizedBox(height: 16.0),
+                // Vitaminas
+                TextFormField(
+                  controller: vitaminsController,
+                  decoration: const InputDecoration(labelText: 'Vitaminas'),
+                ),
+                const SizedBox(height: 16.0),
 
-              // Botón para enviar el formulario
-              ElevatedButton(
-                onPressed: () {
-                  // Aquí puedes agregar la lógica para enviar el formulario
-                  _addProduct();
-                },
-                child: const Text('Añadir Producto'),
-              ),
-              const SizedBox(height: 50),
-              const Text(
-                'Lista de Productos',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              productList.isEmpty
-                  ? const Text('No hay productos añadidos.')
-                  : DataTable(
-                      columns: const [
-                        DataColumn(label: Text('Título')),
-                        DataColumn(label: Text('Actualizar')),
-                        DataColumn(label: Text('Eliminar')),
-                      ],
-                      rows: productList.map((product) {
-                        return DataRow(cells: [
-                          DataCell(Text(product.title)),
-                          DataCell(
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                // Aquí puedes agregar la lógica para actualizar el producto
-                                print('Actualizar ${product.title}');
-                              },
-                              style: ElevatedButton.styleFrom(
-                                primary: Colors.blue,
-                                padding:const  EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 16),
-                              ),
-                              icon: const Icon(Icons.edit, color: Colors.white),
-                              label: const  Text(
-                                '',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                // Aquí puedes agregar la lógica para eliminar el producto
-                                print('Eliminar ${product.title}');
-                              },
-                              style: ElevatedButton.styleFrom(
-                                primary: Colors.red,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 16),
-                              ),
-                              icon: const Icon(Icons.delete, color: Colors.white),
-                              label: const  Text(
-                                '',
-                                style: TextStyle(color: Colors.white),
+                // Botón para enviar el formulario
+                ElevatedButton(
+                  onPressed: () {
+                    // Aquí puedes agregar la lógica para enviar el formulario
+                    _addProduct();
+                    _clearForm();
+                  },
+                  child: const Text('Añadir Producto'),
+                ),
+                const SizedBox(height: 50),
+                const Text(
+                  'Lista de Productos',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                productList.isEmpty
+                    ? const Text('No hay productos añadidos.')
+                    : DataTable(
+                        columns: const [
+                          DataColumn(label: Text('Título')),
+                          DataColumn(label: Text('Eliminar')),
+                        ],
+                        rows: productList.map((product) {
+                          return DataRow(cells: [
+                            DataCell(Text(product.title)),
+                            DataCell(
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  // Aquí puedes agregar la lógica para eliminar el producto
+                                  _deleteProduct(product
+                                      .id); // Llama a la función para eliminar el producto
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  primary: Colors.red,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 16),
+                                ),
+                                icon: const Icon(Icons.delete,
+                                    color: Colors.white),
+                                label: const Text(
+                                  '',
+                                ),
                               ),
                             ),
-                          ),
-                        ]);
-                      }).toList(),
-                    ),
-            ],
+                          ]);
+                        }).toList(),
+                      ),
+              ],
+            ),
           ),
         ),
       ),
@@ -187,6 +193,20 @@ class _AddProductsState extends State<AddProducts> {
         imagePath = image.path;
       });
     }
+  }
+
+  void _clearForm() {
+    categoryController.clear();
+    priceController.clear();
+    rankingController.clear();
+    titleController.clear();
+    descriptionController.clear();
+    caloriesController.clear();
+    additivesController.clear();
+    vitaminsController.clear();
+    setState(() {
+      imagePath = null;
+    });
   }
 
   void _addProduct() async {
@@ -228,13 +248,29 @@ class _AddProductsState extends State<AddProducts> {
     if (result != 0) {
       // Mostrar un mensaje de éxito o navegar a otra pantalla
       print('Producto añadido con éxito');
-      // Agregar el producto a la lista para mostrarlo
-      setState(() {
-        productList.add(product);
-      });
+      // Actualizar la lista de productos después de agregar uno nuevo
+      _loadProducts();
+      // Limpiar el formulario
+      _clearForm();
     } else {
       // Mostrar un mensaje de error
       print('Error al añadir el producto');
+    }
+  }
+
+  void _deleteProduct(int productId) async {
+    // Llama al método en DatabaseHelper para eliminar el producto
+    int result = await dbHelper.deleteFoodItem(productId);
+
+    // Verificar si la eliminación fue exitosa
+    if (result != 0) {
+      // Mostrar un mensaje de éxito o realizar cualquier otra acción necesaria
+      print('Producto eliminado con éxito');
+      // Actualizar la lista de productos después de eliminar uno
+      _loadProducts();
+    } else {
+      // Mostrar un mensaje de error
+      print('Error al eliminar el producto');
     }
   }
 }

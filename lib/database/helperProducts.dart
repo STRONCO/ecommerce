@@ -15,6 +15,10 @@ class DatabaseHelper {
     _db = await initDb();
     return _db;
   }
+  Future<void> closeDb() async {
+    var dbClient = await db;
+    await dbClient?.close();
+  }
 
   DatabaseHelper.internal();
 
@@ -42,28 +46,44 @@ class DatabaseHelper {
       )
     ''');
   }
-Future<int> insertFoodItem(ProductsItems foodItem) async {
-  var dbClient = await db;
-  return await dbClient?.insert('ProductsItems', foodItem.toMap(excludeId: true)) ?? 0;
-}
- Future<List<ProductsItems>> getFoodItems() async {
-  var dbClient = await db;
-  List<Map<String, dynamic>> list = await dbClient?.query('ProductsItems') ?? [];
-  List<ProductsItems> foodItems = [];
-  for (var item in list) {
-    foodItems.add(ProductsItems(
-      id: item['id'],
-      title: item['title'],
-      description: item['description'],
-      category: item['category'],
-      image: item['image'],
-      price: item['price'],
-      ranking: item['ranking'],
-      calories: item['calories'],
-      additives: item['additives'],
-      vitamins: item['vitamins'],
-    ));
+  Future<int> insertFoodItem(ProductsItems foodItem) async {
+    var dbClient = await db;
+    try {
+      print("Si se insertaron bien");
+      return await dbClient?.insert('ProductsItems', foodItem.toMap(excludeId: true)) ?? 0;
+    } catch (e) {
+      print("Error al insertar en la base de datos: $e");
+      return 0;
+    }
   }
-  return foodItems;
-}
+ Future<List<ProductsItems>> getFoodItems() async {
+    var dbClient = await db;
+    try {
+      List<Map<String, dynamic>> list = await dbClient?.query('ProductsItems') ?? [];
+      return list.map((item) => ProductsItems(
+        id: item['id'],
+        title: item['title'],
+        description: item['description'],
+        category: item['category'],
+        image: item['image'],
+        price: item['price'],
+        ranking: item['ranking'],
+        calories: item['calories'],
+        additives: item['additives'],
+        vitamins: item['vitamins'],
+      )).toList();
+    } catch (e) {
+      print("Error al obtener datos de la base de datos: $e");
+      return [];
+    }
+  }
+    Future<int> deleteFoodItem(int productId) async {
+    var dbClient = await db;
+    try {
+      return await dbClient?.delete('ProductsItems', where: 'id = ?', whereArgs: [productId]) ?? 0;
+    } catch (e) {
+      print("Error al eliminar de la base de datos: $e");
+      return 0;
+    }
+  }
 }
