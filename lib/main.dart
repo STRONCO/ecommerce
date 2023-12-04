@@ -9,13 +9,16 @@ import 'database/db_helper.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'dataProvider.dart';
 import 'package:provider/provider.dart';
+import 'screens/addProducts_screen.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DBHelper.initializeDatabase();
 
   runApp(
     ChangeNotifierProvider(
-      create: (context) => DataProvider(), // Ajusta según tu estructura de clases
+      create: (context) =>
+          DataProvider(), // Ajusta según tu estructura de clases
       child: const MyApp(),
     ),
   );
@@ -49,18 +52,18 @@ class _HomePageState extends State<HomePage> {
     loadData();
   }
 
-Future<void> loadData() async {
-  try {
-    List<Categories> loadedCategories = await DBHelper.getAllCategories();
-    print('Categories loaded: $loadedCategories');
-    setState(() {
-      categories = loadedCategories;
-    });
-    print('Categories updated: $categories');
-  } catch (e) {
-    print('Error loading data: $e');
+  Future<void> loadData() async {
+    try {
+      List<Categories> loadedCategories = await DBHelper.getAllCategories();
+      print('Categories loaded: $loadedCategories');
+      setState(() {
+        categories = loadedCategories;
+      });
+      print('Categories updated: $categories');
+    } catch (e) {
+      print('Error loading data: $e');
+    }
   }
-}
 
   Color hexToColor(String colorCode) {
     try {
@@ -146,8 +149,7 @@ Future<void> loadData() async {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const Product_details()),
+                  MaterialPageRoute(builder: (context) => AddProducts()),
                 );
               },
             ),
@@ -284,6 +286,7 @@ Future<void> loadData() async {
                             'Titulo',
                             style: TextStyle(
                               color: Colors.white,
+                              fontSize: 28.0,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

@@ -2,9 +2,6 @@ import 'package:sqflite/sqflite.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart';
 import '/models/categories.dart';
-import '/dataProvider.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter/widgets.dart';
 import 'dart:async';
 
 class DBHelper {

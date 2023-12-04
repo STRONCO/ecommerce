@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
-import 'database/db_helper.dart'; // Asegúrate de importar DBHelper
-import 'models/categories.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
+// ignore_for_file: file_names
 
+import 'package:flutter/material.dart';
+import 'models/categories.dart';
 import 'package:flutter/foundation.dart';
 
 class DataProvider extends ChangeNotifier {

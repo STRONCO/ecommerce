@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '/models/categories.dart';
 import '/database/db_helper.dart';
-import '/main.dart';
 import '/dataProvider.dart';
 import 'package:provider/provider.dart';
 
