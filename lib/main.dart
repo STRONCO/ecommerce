@@ -294,7 +294,10 @@ class _HomePageState extends State<HomePage> {
                                       border: Border.all(
                                         color: selectedCategory ==
                                                 category.texto
-                                            ? Color.fromARGB(255, 160, 132,
+                                            ? const Color.fromARGB(
+                                                255,
+                                                160,
+                                                132,
                                                 10) // Color vino cuando está seleccionado
                                             : Colors
                                                 .transparent, // Borde transparente cuando no está seleccionado
@@ -351,26 +354,28 @@ class _HomePageState extends State<HomePage> {
                               if (selectedProduct != null &&
                                   selectedProduct!.image.isNotEmpty)
                                 Padding(
-  padding: const EdgeInsets.only(left: 0.0),
-  child: GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProductDetailsScreen(product: selectedProduct),
-        ),
-      );
-    },
-    child: ClipOval(
-      child: Image.file(
-        File(selectedProduct!.image),
-        width: 120.0,
-        height: 120.0,
-        fit: BoxFit.cover,
-      ),
-    ),
-  ),
-),
+                                  padding: const EdgeInsets.only(left: 0.0),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ProductDetailsScreen(
+                                                  product: selectedProduct),
+                                        ),
+                                      );
+                                    },
+                                    child: ClipOval(
+                                      child: Image.file(
+                                        File(selectedProduct!.image),
+                                        width: 120.0,
+                                        height: 120.0,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               const SizedBox(
                                   width: 15.0), // Adjust spacing as needed
                               if (selectedProduct != null)
@@ -419,9 +424,7 @@ class _HomePageState extends State<HomePage> {
                                         onPressed: () {
                                           // Lógica para agregar al carrito
                                         },
-                                        style: ElevatedButton.styleFrom(
-                                          primary: Colors.white,
-                                        ),
+                                        style: ElevatedButton.styleFrom(),
                                         icon: const Icon(Icons.shopping_cart,
                                             color: Colors.black),
                                         label: const Text(

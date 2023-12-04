@@ -16,6 +16,7 @@ class AddProducts extends StatefulWidget {
 class _AddProductsState extends State<AddProducts> {
   final DatabaseHelper dbHelper = DatabaseHelper();
   final ImagePicker _picker = ImagePicker();
+  bool _isImagePickerActive = false;
 
   // Controladores para los campos del formulario
   final TextEditingController imageController = TextEditingController();
@@ -68,7 +69,7 @@ class _AddProductsState extends State<AddProducts> {
 
                 // Botón para abrir la cámara
                 ElevatedButton(
-                  onPressed: _takePicture,
+                  onPressed: _isImagePickerActive ? null : _takePicture,
                   child: const Text('Tomar Foto'),
                 ),
                 // Categoría
@@ -186,11 +187,25 @@ class _AddProductsState extends State<AddProducts> {
   }
 
   void _takePicture() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    if (_isImagePickerActive) {
+      return;
+    }
 
-    if (image != null) {
+    setState(() {
+      _isImagePickerActive = true;
+    });
+
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+
+      if (image != null) {
+        setState(() {
+          imagePath = image.path;
+        });
+      }
+    } finally {
       setState(() {
-        imagePath = image.path;
+        _isImagePickerActive = false;
       });
     }
   }
