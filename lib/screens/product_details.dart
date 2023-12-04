@@ -6,7 +6,7 @@ import 'package:ecommerce/screens/cart_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:ecommerce/models/cart.dart';
-import 'keys.dart';
+import 'package:ecommerce/database/cartDatabase.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final ProductsItems? product;
@@ -157,21 +157,40 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         padding: const EdgeInsets.all(16.0),
         color: Colors.white,
         child: ElevatedButton(
-          onPressed: () {
-            print('Add to Cart button pressed');
+          onPressed: () async {
+            // Crear un nuevo CartItem con la información del producto actual
+            String productId = widget.product?.id?.toString() ?? 'N/A';
+
+            // Verificar si el ID del producto es nulo o está vacío antes de continuar
+            if (productId == 'N/A' || productId.isEmpty) {
+              // Manejar el caso en el que el ID del producto no es válido
+              print('Invalid product ID');
+              return;
+            }
+
+            print('Product ID: $productId');
+            print('Product Title: ${widget.product?.title}');
+            print('Product Price: ${widget.product?.price}');
+            print('Product Image: ${widget.product?.image}');
+
             CartItem newItem = CartItem(
-              productId: widget.product!.id.toString(),
-              productName: widget.product!.title,
-              price: widget.product!.price,
+              productId: productId,
+              productTitle: widget.product?.title ?? 'N/A',
+              price: widget.product?.price ?? 0.0,
+              image: widget.product?.image ?? 'default_image.jpg',
               quantity: selectedQuantity,
             );
 
-            print('Adding to cart: $newItem');
-            cartScreenKey.currentState?.addToCart(newItem);
+            print('New CartItem: $newItem');
 
-            print('Navigating to CartScreen');
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const CartScreen()));
+            // Llamar al método para insertar el nuevo item en la base de datos del carrito
+            await CartDatabase.insertCartItem(newItem);
+
+            // Navegar a la pantalla del carrito (puedes ajustar esto según tu estructura de navegación)
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CartScreen()),
+            );
           },
           child: const Text('Add to Cart'),
         ),

@@ -122,6 +122,7 @@ class _AddProductsState extends State<AddProducts> {
                 TextFormField(
                   controller: additivesController,
                   decoration: const InputDecoration(labelText: 'Aditivos'),
+                  keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16.0),
 
@@ -129,6 +130,7 @@ class _AddProductsState extends State<AddProducts> {
                 TextFormField(
                   controller: vitaminsController,
                   decoration: const InputDecoration(labelText: 'Vitaminas'),
+                  keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16.0),
 
@@ -256,35 +258,22 @@ class _AddProductsState extends State<AddProducts> {
       vitamins: vitamins,
     );
 
-    // Insertar el producto en la base de datos
     int result = await dbHelper.insertFoodItem(product);
-
-    // Verificar si la inserción fue exitosa
     if (result != 0) {
-      // Mostrar un mensaje de éxito o navegar a otra pantalla
       print('Producto añadido con éxito');
-      // Actualizar la lista de productos después de agregar uno nuevo
       _loadProducts();
-      // Limpiar el formulario
       _clearForm();
     } else {
-      // Mostrar un mensaje de error
       print('Error al añadir el producto');
     }
   }
 
   void _deleteProduct(int productId) async {
-    // Llama al método en DatabaseHelper para eliminar el producto
     int result = await dbHelper.deleteFoodItem(productId);
-
-    // Verificar si la eliminación fue exitosa
     if (result != 0) {
-      // Mostrar un mensaje de éxito o realizar cualquier otra acción necesaria
       print('Producto eliminado con éxito');
-      // Actualizar la lista de productos después de eliminar uno
       _loadProducts();
     } else {
-      // Mostrar un mensaje de error
       print('Error al eliminar el producto');
     }
   }

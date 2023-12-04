@@ -1,91 +1,233 @@
-// ignore_for_file: library_private_types_in_public_api
-
-import 'package:ecommerce/models/cart.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:ecommerce/models/cart.dart';
+import 'package:ecommerce/database/cartDatabase.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key}) : super(key: key);
 
   @override
-  CartScreenState createState() => CartScreenState();
+  _CartScreenState createState() => _CartScreenState();
 }
 
-class CartScreenState extends State<CartScreen> {
-  List<CartItem> cartItems = [];
+class _CartScreenState extends State<CartScreen> {
+  late Future<List<CartItem>> cartItemsFuture;
+  double _total = 0.0;
+  static final GlobalKey<ScaffoldState> _scaffoldKey =
+      GlobalKey<ScaffoldState>();
+
   @override
   void initState() {
     super.initState();
-    cartItems = []; // Initialize the list here
-  }
-
-  double get totalPrice {
-    return cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
+    cartItemsFuture = CartDatabase.getCartItems();
+    updateTotal(); // Llama a la función al inicio para calcular el total.
   }
 
   @override
   Widget build(BuildContext context) {
-    print('Cart items in build: $cartItems');
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('Cart Pantalla'),
+        title: Text('Shopping Cart'),
       ),
-      body: ListView.builder(
-        itemCount: cartItems.length,
-        itemBuilder: (context, index) {
-          final item = cartItems[index];
-          return ListTile(
-            title: Text(item.productName),
-            subtitle: Text('Quantity: ${item.quantity}'),
-            trailing: Text('\$${item.price * item.quantity}'),
-          );
+      body: FutureBuilder<List<CartItem>>(
+        future: cartItemsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else {
+            List<CartItem> cartItems = snapshot.data!;
+            double total = calculateTotal(cartItems);
+
+            return cartItems.isNotEmpty
+                ? Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: cartItems.length,
+                          itemBuilder: (context, index) {
+                            CartItem cartItem = cartItems[index];
+                            return CartItemCard(
+                              cartItem: cartItem,
+                              updateTotal: updateTotal,
+                            );
+                          },
+                        ),
+                      ),
+                      Container(
+                        color: Colors.black,
+                        padding: EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total:',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              '\$$total',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                : Center(
+                    child: Text('Your cart is empty.'),
+                  );
+          }
         },
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16.0),
-        color: Colors.white,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  double calculateTotal(List<CartItem> cartItems) {
+    double total = 0.0;
+    for (CartItem cartItem in cartItems) {
+      total += cartItem.price * cartItem.quantity;
+    }
+    return total;
+  }
+
+  void updateTotal() {
+    setState(() {
+      // No necesitamos calcular el total aquí, ya que FutureBuilder ya lo hace.
+    });
+  }
+}
+
+class CartItemCard extends StatefulWidget {
+  final CartItem cartItem;
+  final VoidCallback updateTotal;
+
+  const CartItemCard({
+    Key? key,
+    required this.cartItem,
+    required this.updateTotal,
+  }) : super(key: key);
+
+  @override
+  _CartItemCardState createState() => _CartItemCardState();
+}
+
+class _CartItemCardState extends State<CartItemCard> {
+  late GlobalKey<FormFieldState<String>> quantityFieldKey;
+
+  @override
+  void initState() {
+    super.initState();
+    quantityFieldKey = GlobalKey<FormFieldState<String>>();
+  }
+
+  Future<void> deleteCartItem() async {
+    print('Deleting item: ${widget.cartItem.productTitle}');
+    await widget.cartItem.delete();
+    print('Item deleted');
+
+    // Llama a la función para actualizar el total después de eliminar un artículo.
+    widget.updateTotal();
+
+    // Muestra un SnackBar para notificar al usuario
+    ScaffoldMessenger.of(_CartScreenState._scaffoldKey.currentContext!)
+        .showSnackBar(
+      SnackBar(content: Text('Item deleted from the cart')),
+    );
+    // Espera un breve momento antes de forzar la reconstrucción del widget
+    await Future.delayed(Duration(milliseconds: 500));
+
+    // Actualiza el estado para forzar la reconstrucción del widget.
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.all(8.0),
+      child: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Row(
           children: [
-            const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Total:'),
-                Text('\$$totalPrice',
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-              ],
+            Image.file(
+              File(widget.cartItem.image),
+              width: 50.0,
+              height: 50.0,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                // Realizar la acción de realizar la compra, enviar la orden, etc.
-                // Puedes reiniciar la lista del carrito aquí si es necesario.
-                setState(() {
-                  cartItems.clear();
-                });
-              },
-              child: const Text('Checkout'),
+            SizedBox(width: 8.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    child: Text(
+                      widget.cartItem.productTitle,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  SizedBox(height: 8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text('Original: \$${widget.cartItem.price}'),
+                      SizedBox(width: 50.0),
+                      Text(
+                        'Final: \$${widget.cartItem.price * widget.cartItem.quantity}',
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text('Quantity: '),
+                      SizedBox(
+                        width: 20.0,
+                        child: TextFormField(
+                          key: quantityFieldKey,
+                          initialValue: widget.cartItem.quantity.toString(),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            setState(() {
+                              widget.cartItem.quantity =
+                                  int.tryParse(value) ?? 0;
+                            });
+                            // Llama a la función para actualizar el total al cambiar la cantidad.
+                            widget.updateTotal();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: deleteCartItem,
             ),
           ],
         ),
       ),
     );
-  }
-
-  // Función para agregar un producto al carrito
-  void addToCart(CartItem newItem) {
-    print('Adding to cart: $newItem');
-    setState(() {
-      final existingItemIndex =
-          cartItems.indexWhere((item) => item.productId == newItem.productId);
-      if (existingItemIndex != -1) {
-        // If the item already exists in the cart, update the quantity
-        cartItems[existingItemIndex].quantity += newItem.quantity;
-      } else {
-        // If the item doesn't exist, add it to the cart
-        cartItems.add(newItem);
-      }
-      print('Cart items: $cartItems');
-    });
   }
 }

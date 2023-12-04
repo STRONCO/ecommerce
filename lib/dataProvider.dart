@@ -13,4 +13,5 @@ class DataProvider extends ChangeNotifier {
     _categories = newCategories;
     notifyListeners();
   }
+  
 }

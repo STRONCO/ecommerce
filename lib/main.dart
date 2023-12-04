@@ -8,9 +8,11 @@ import 'package:provider/provider.dart';
 //database
 import 'database/db_helper.dart';
 import 'database/helperProducts.dart';
+import 'database/cartDatabase.dart';
 //models
 import 'models/categories.dart';
 import 'models/products.dart';
+import 'models/cart.dart';
 //screens
 import 'screens/product_details.dart';
 import 'screens/addCategories.dart';
@@ -20,11 +22,12 @@ import 'screens/addProducts_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DBHelper.initializeDatabase();
+  await CartDatabase.initializeDatabase();
 
   runApp(
     ChangeNotifierProvider(
       create: (context) => DataProvider(),
-      child: const MyApp(), // Remove const here
+      child: const MyApp(),
     ),
   );
 }
@@ -54,6 +57,7 @@ class _HomePageState extends State<HomePage> {
   Color randomBorderColor = Colors.transparent;
   String selectedCategory = 'Frutas';
   String selectedCategoryImage = '';
+  int selectedQuantity = 1;
 
   void onProductSelected(ProductsItems product) {
     setState(() {
@@ -61,14 +65,47 @@ class _HomePageState extends State<HomePage> {
       randomBorderColor = getRandomColor();
       print('Selected Product: $selectedProduct');
 
-      // Actualizar la categoría seleccionada cuando se selecciona un producto
       selectedCategory = product.category;
 
-      // Actualizar la imagen de la categoría seleccionada
       selectedCategoryImage = categories
           .firstWhere((category) => category.texto == selectedCategory)
           .imagen;
     });
+  }
+
+  void addToCart(ProductsItems product, int quantity) async {
+    String productId = product.id?.toString() ?? 'N/A';
+
+    // Verificar si el ID del producto es nulo o está vacío antes de continuar
+    if (productId == 'N/A' || productId.isEmpty) {
+      // Manejar el caso en el que el ID del producto no es válido
+      print('Invalid product ID');
+      return;
+    }
+
+    print('Product ID: $productId');
+    print('Product Title: ${product.title}');
+    print('Product Price: ${product.price}');
+    print('Product Image: ${product.image}');
+
+    CartItem newItem = CartItem(
+      productId: productId,
+      productTitle: product.title ?? 'N/A',
+      price: product.price ?? 0.0,
+      image: product.image ?? 'default_image.jpg',
+      quantity: quantity,
+    );
+
+    print('New CartItem: $newItem');
+
+    // Llamar al método para insertar el nuevo item en la base de datos del carrito
+    await CartDatabase.insertCartItem(newItem);
+
+    // Navegar a la pantalla del carrito (puedes ajustar esto según tu estructura de navegación)
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CartScreen()),
+    );
   }
 
   Color getRandomColor() {
@@ -86,7 +123,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    dbHelper = DatabaseHelper(); // Inicialización de la instancia
+    dbHelper = DatabaseHelper();
     print('initState called');
     loadData();
   }
@@ -145,12 +182,13 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CartScreen()),
+                MaterialPageRoute(builder: (context) => CartScreen()),
               );
             },
           ),
         ],
       ),
+
 //Hamburguer -Start
       drawer: Drawer(
         child: ListView(
@@ -209,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CartScreen()),
+                  MaterialPageRoute(builder: (context) => CartScreen()),
                 );
               },
             ),
@@ -245,8 +283,7 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10.0), // Ajusta según tus preferencias
-
+              const SizedBox(height: 10.0),
               FutureBuilder<List<Categories>>(
                 future: DBHelper.getAllCategories(),
                 builder: (context, snapshot) {
@@ -269,11 +306,8 @@ class _HomePageState extends State<HomePage> {
                           Categories category = categories[index];
                           return GestureDetector(
                             onTap: () {
-                              // Actualizar la categoría seleccionada cuando se toca una categoría
                               setState(() {
                                 selectedCategory = category.texto;
-
-                                // Actualizar la imagen de la categoría seleccionada
                                 selectedCategoryImage = category.imagen;
                               });
                             },
@@ -289,18 +323,13 @@ class _HomePageState extends State<HomePage> {
                                     height: 50.0,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: hexToColor(category
-                                          .colorCategory), // Color original
+                                      color: hexToColor(category.colorCategory),
                                       border: Border.all(
-                                        color: selectedCategory ==
-                                                category.texto
-                                            ? const Color.fromARGB(
-                                                255,
-                                                160,
-                                                132,
-                                                10) // Color vino cuando está seleccionado
-                                            : Colors
-                                                .transparent, // Borde transparente cuando no está seleccionado
+                                        color:
+                                            selectedCategory == category.texto
+                                                ? const Color.fromARGB(
+                                                    255, 160, 132, 10)
+                                                : Colors.transparent,
                                         width: 3.0,
                                       ),
                                     ),
@@ -333,7 +362,6 @@ class _HomePageState extends State<HomePage> {
                   }
                 },
               ),
-
               Padding(
                 padding: const EdgeInsets.only(top: 0.0),
                 child: Stack(
@@ -376,8 +404,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                 ),
-                              const SizedBox(
-                                  width: 15.0), // Adjust spacing as needed
+                              const SizedBox(width: 15.0),
                               if (selectedProduct != null)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 80.0),
@@ -415,14 +442,17 @@ class _HomePageState extends State<HomePage> {
                                           Icons.star,
                                           color: Colors.amber,
                                         ),
-                                        onRatingUpdate: (rating) {
-                                          // Lógica de actualización de la calificación
-                                        },
+                                        onRatingUpdate: (rating) {},
                                       ),
                                       const SizedBox(height: 50.0),
                                       ElevatedButton.icon(
                                         onPressed: () {
-                                          // Lógica para agregar al carrito
+                                          if (selectedProduct != null) {
+                                            addToCart(selectedProduct!,
+                                                selectedQuantity);
+                                          } else {
+                                            print('Selected product is null');
+                                          }
                                         },
                                         style: ElevatedButton.styleFrom(),
                                         icon: const Icon(Icons.shopping_cart,
@@ -431,7 +461,7 @@ class _HomePageState extends State<HomePage> {
                                           'Add to Cart',
                                           style: TextStyle(color: Colors.black),
                                         ),
-                                      ),
+                                      )
                                     ],
                                   ),
                                 )
@@ -443,7 +473,6 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 0.5),
               Container(
                 padding: const EdgeInsets.all(16.0),
@@ -468,7 +497,6 @@ class _HomePageState extends State<HomePage> {
                             if (snapshot.hasData) {
                               List<ProductsItems>? products = snapshot.data;
 
-                              // Filtrar los productos según la categoría seleccionada
                               List<ProductsItems>? filteredProducts = products
                                   ?.where((product) =>
                                       product.category == selectedCategory)
@@ -483,7 +511,7 @@ class _HomePageState extends State<HomePage> {
                                         return GestureDetector(
                                           onTap: () {
                                             onProductSelected(
-                                                filteredProducts![index]);
+                                                filteredProducts[index]);
                                           },
                                           child: Padding(
                                             padding: const EdgeInsets.only(
@@ -526,7 +554,7 @@ class _HomePageState extends State<HomePage> {
                                         );
                                       },
                                     )
-                                  : const SizedBox(); // Si no hay productos disponibles para la categoría seleccionada, muestra un contenedor vacío
+                                  : const SizedBox();
                             } else {
                               return const Text(
                                   'No hay productos disponibles.');
